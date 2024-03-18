@@ -52,6 +52,25 @@ namespace PruebaTecnica.Controllers
         }
 
         /// <summary>
+        /// Lista un usuario por nombre
+        /// </summary>
+        /// <param name="nombre"></param>
+        /// <returns></returns>
+        [HttpGet("{nombre}", Name = "obtenerUsuarioPorNombre")]
+        public async Task<ActionResult<usuarioCreacionDTO>> GetNombre(string nombre)
+        {
+            var entidadNombre = await context.Usuarios.FirstOrDefaultAsync(X => X.PrimerNombre == nombre);
+
+            if (entidadNombre == null)
+                return NotFound();
+
+            var dto = mapper.Map<usuarioCreacionDTO>(entidadNombre);
+
+            return dto;
+        }
+
+
+        /// <summary>
         /// Realiza el envio de datos hacia la bd
         /// </summary>
         /// <param name="usuarioCreacionDTO"></param>
