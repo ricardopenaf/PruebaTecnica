@@ -3,7 +3,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PruebaTecnica.DTOs;
+using PruebaTecnica.Helpers;
 using PruebaTecnica.Models;
+using System.Linq;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace PruebaTecnica.Controllers
 {
@@ -31,6 +34,12 @@ namespace PruebaTecnica.Controllers
             var entidades = await context.Usuarios.ToListAsync();
             var dtos = mapper.Map<List<usuarioCreacionDTO>>(entidades);
             return dtos;
+
+            //var queryable = context.Usuarios.AsQueryable();
+            //await HttpContext.InsertarParametrosPaginacion(queryable, paginacionDTO.CantidadRegistrosPorPagina);
+
+            //var entidades = await queryable.Paginar(paginacionDTO).ToListAsync();
+            //return mapper.Map<List<usuarioCreacionDTO>>(entidades);
         }
 
         /// <summary>
@@ -56,7 +65,7 @@ namespace PruebaTecnica.Controllers
         /// </summary>
         /// <param name="nombre"></param>
         /// <returns></returns>
-        [HttpGet("{nombre}", Name = "obtenerUsuarioPorNombre")]
+        [HttpGet("nombre/{nombre}", Name = "obtenerUsuarioPorNombre")]
         public async Task<ActionResult<usuarioCreacionDTO>> GetNombre(string nombre)
         {
             var entidadNombre = await context.Usuarios.FirstOrDefaultAsync(X => X.PrimerNombre == nombre);
@@ -67,6 +76,28 @@ namespace PruebaTecnica.Controllers
             var dto = mapper.Map<usuarioCreacionDTO>(entidadNombre);
 
             return dto;
+        }
+
+
+        /// <summary>
+        /// Obtener usuario por primer apllido
+        /// </summary>
+        /// <param name="paginacionDTO"></param>
+        /// <returns></returns>
+        [HttpGet("apellido/{apellido}", Name = "obtenerUsuarioPorApellido")]
+        public async Task<ActionResult<List<usuarioCreacionDTO>>> GetApellido(string apellido, [FromQuery] PaginacionDTO paginacionDTO)
+        {
+            var queryable = context.Usuarios.Where(X => X.PrimerApellido == apellido);
+
+            if (!await queryable.AnyAsync())
+            {
+                return NotFound("No se encontraron usuarios con el apellido especificado.");
+            }
+
+            await HttpContext.InsertarParametrosPaginacion(queryable, paginacionDTO.CantidadRegistrosPorPagina);
+
+            var entidades = await queryable.Paginar(paginacionDTO).ToListAsync();
+            return mapper.Map<List<usuarioCreacionDTO>>(entidades);
         }
 
 
